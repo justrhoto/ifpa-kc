@@ -1,5 +1,7 @@
-mycache.pickle
-.vscode/launch.json
 .env
 .venv/
 __pycache__/
+.vscode/launch.json
+mycache.pickle
+results_cache.json
+site/data.json
