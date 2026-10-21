@@ -23,21 +23,28 @@
     </dl>
   </header>
 
-  <main>
-    <div class="toolbar">
-      <label class="search">
-        <span class="visually-hidden">Find a player</span>
-        <input type="search" id="search" placeholder="Find a player" autocomplete="off" spellcheck="false">
-      </label>
-      <p class="count" id="count" aria-live="polite"></p>
-    </div>
+  <div class="layout">
+    <nav class="seasons" id="seasons" aria-label="Season" hidden>
+      <h2>Season</h2>
+      <ol id="years"></ol>
+    </nav>
 
-    <div class="list-head" aria-hidden="true">
-      <span></span><span>Player</span><span class="avg">Avg</span><span>Events</span><span>Points</span>
-    </div>
-    <ol class="rows" id="rows"></ol>
-    <p class="status" id="status" hidden></p>
-  </main>
+    <main>
+      <div class="toolbar">
+        <label class="search">
+          <span class="visually-hidden">Find a player</span>
+          <input type="search" id="search" placeholder="Find a player" autocomplete="off" spellcheck="false">
+        </label>
+        <p class="count" id="count" aria-live="polite"></p>
+      </div>
+
+      <div class="list-head" aria-hidden="true">
+        <span></span><span>Player</span><span class="avg">Avg</span><span>Events</span><span>Points</span>
+      </div>
+      <ol class="rows" id="rows"></ol>
+      <p class="status" id="status" hidden></p>
+    </main>
+  </div>
 
   <footer>
     <p class="meta" id="meta"></p>

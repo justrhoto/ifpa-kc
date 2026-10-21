@@ -21,7 +21,7 @@
 * { box-sizing: border-box; }
 
 body {
-  max-width: 880px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 16px var(--gutter) 32px;
   background: var(--cabinet);
@@ -97,6 +97,104 @@ a { color: var(--plasma); }
   line-height: 1;
 }
 
+/* Seasons: a scrolling strip of years on phones, a sidebar on wider screens. */
+.layout { margin-top: 20px; }
+
+.seasons h2 {
+  margin: 0 0 0.4em;
+  color: var(--muted);
+  font-size: 0.6em;
+  font-weight: 500;
+}
+
+.seasons ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.seasons a {
+  display: block;
+  padding: 0.2em 0.55em;
+  border: 2px solid var(--cabinet-rail);
+  border-radius: 6px;
+  color: var(--cream);
+  font-weight: 700;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.seasons a:hover { border-color: var(--muted); }
+
+.seasons a:focus-visible {
+  outline: 2px solid var(--plasma);
+  outline-offset: 2px;
+}
+
+/* The selected season is lit like the DMD. */
+.seasons a[aria-current] {
+  border-color: #000;
+  background-color: #000;
+  background-image: radial-gradient(circle, var(--plasma-unlit) 38%, transparent 42%);
+  background-size: 4px 4px;
+  color: var(--plasma);
+  font-family: var(--dots);
+  font-weight: 900;
+  text-shadow: 0 0 6px rgb(255 122 26 / 0.65);
+}
+
+.seasons .events-held { display: none; }
+
+@media (max-width: 899px) {
+  /* Bleed the strip to the screen edges so it reads as scrollable. */
+  .seasons ol {
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+  }
+  .seasons h2 { display: none; }
+}
+
+@media (min-width: 900px) {
+  .layout {
+    display: grid;
+    grid-template-columns: 7.5em minmax(0, 1fr);
+    gap: var(--gutter);
+    align-items: start;
+  }
+
+  .seasons {
+    position: sticky;
+    top: 10px;
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+    padding-top: 10px;
+  }
+
+  .seasons ol { flex-direction: column; gap: 4px; overflow-x: visible; }
+
+  .seasons a {
+    padding-block: 0.1em;
+    font-size: 0.85em;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.4em;
+  }
+
+  .seasons .events-held {
+    display: inline;
+    color: var(--muted);
+    font-family: var(--display);
+    font-size: 0.6em;
+    font-weight: 500;
+    text-shadow: none;
+  }
+}
+
 /* Search stays reachable while scrolling a long list. */
 .toolbar {
   position: sticky;
@@ -105,7 +203,7 @@ a { color: var(--plasma); }
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 20px calc(var(--gutter) * -1) 0;
+  margin: 0 calc(var(--gutter) * -1);
   padding: 10px var(--gutter);
   background: var(--cabinet);
 }

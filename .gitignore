@@ -5,3 +5,4 @@ __pycache__/
 mycache.pickle
 results_cache.json
 site/data.json
+site/data/

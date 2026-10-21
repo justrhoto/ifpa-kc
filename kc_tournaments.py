@@ -64,9 +64,25 @@ def parse_args() -> argparse.Namespace:
         help='Write the top players to this JSON file instead of printing',
         type=Path,
     )
+    parser.add_argument(
+        '-a',
+        '--archive',
+        help='Also write <year>.json for every year from --first-year '
+        'through --year to this directory, plus a years.json index',
+        type=Path,
+    )
+    parser.add_argument(
+        '-f',
+        '--first-year',
+        help='The first year to write to --archive',
+        type=int,
+        default=2009,
+    )
     args = parser.parse_args()
     if not args.apikey:
         parser.error('an API key is required (argument or $IFPA_API_KEY)')
+    if args.first_year > args.year:
+        parser.error('--first-year must not be after --year')
     return args
 
 
@@ -176,17 +192,19 @@ def build_standings(
         dict: Tournament count, search details and players sorted by total
     """
     search = get_tournaments(api_key, year, radius)
+    # A search with no matches leaves out the tournaments list entirely.
+    tournaments = search.get('tournaments', [])
     search_total = int(search['total_results'])
-    if search_total > len(search['tournaments']):
+    if search_total > len(tournaments):
         print(
             f'WARNING: search matched {search_total} tournaments but only '
-            f'{len(search["tournaments"])} were returned; reduce --range'
+            f'{len(tournaments)} were returned; reduce --range'
         )
 
     start_date = date(year, 1, 1)
     players = {}
     tournament_count = 0
-    for tournament in search['tournaments']:
+    for tournament in tournaments:
         if date.fromisoformat(tournament['event_end_date']) < start_date:
             continue
         tournament_name = tournament['tournament_name']
@@ -255,32 +273,33 @@ def print_standings(standings: dict, year: int, top: int) -> None:
             break
 
 
-def write_standings_json(
+def standings_json(
     standings: dict,
-    path: Path,
     api_key: str,
     year: int,
     radius: int,
     max_results: int,
     top: int,
-) -> None:
-    """Write the standings to a JSON file for the kiosk page
+) -> dict:
+    """Build the JSON data the site pages read for one year
 
     Args:
         standings (dict): Standings from build_standings
-        path (Path): File to write
         api_key (str): IFPA API key, used to look up profile photos
         year (int): Year that was ranked
         radius (int): Search radius in miles
         max_results (int): Most events that count toward a player's total
         top (int): Number of players to include; < 1 includes all players
+
+    Returns:
+        dict: Summary details and the top players
     """
     players = standings['players']
     if top > 0:
         players = players[:top]
     photos = get_player_photos(api_key, [str(v['player_id']) for v in players])
-    data = {
-        'generated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+    return {
+        'generated_at': now_iso(),
         'year': year,
         'radius_miles': radius,
         'max_events': max_results,
@@ -301,9 +320,56 @@ def write_standings_json(
             for i, v in enumerate(players, start=1)
         ],
     }
+
+
+def now_iso() -> str:
+    """Current UTC time as an ISO 8601 string, to the second"""
+    return datetime.now(timezone.utc).isoformat(timespec='seconds')
+
+
+def write_json(data: dict, path: Path) -> None:
+    """Write data to a JSON file, creating its directory if needed
+
+    Args:
+        data (dict): Data to write
+        path (Path): File to write
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2), encoding='utf-8')
-    print(f'Wrote {len(players)} players to {path}')
+    print(f'Wrote {path}')
+
+
+def write_archive(args: argparse.Namespace, cache: dict) -> None:
+    """Write standings for every year to the archive directory
+
+    The current year also goes to --json, so the kiosk and the archive share
+    one build. Years without any results are left out of the index.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments
+        cache (dict): Results cache keyed by tournament id
+    """
+    years = []
+    for year in range(args.year, args.first_year - 1, -1):
+        standings = build_standings(args.apikey, year, args.range, args.max, cache)
+        # Save as we go so an interrupted run keeps the results it fetched.
+        CACHE_FILE.write_text(json.dumps(cache), encoding='utf-8')
+        data = standings_json(
+            standings, args.apikey, year, args.range, args.max, args.top
+        )
+        if year == args.year and args.json:
+            write_json(data, args.json)
+        if not data['players']:
+            continue
+        write_json(data, args.archive / f'{year}.json')
+        years.append(
+            {
+                'year': year,
+                'tournament_count': data['tournament_count'],
+                'player_count': data['player_count'],
+            }
+        )
+    write_json({'generated_at': now_iso(), 'years': years}, args.archive / 'years.json')
 
 
 def main() -> None:
@@ -314,18 +380,18 @@ def main() -> None:
     except FileNotFoundError:
         cache = {}
 
-    standings = build_standings(args.apikey, args.year, args.range, args.max, cache)
-    if args.json:
-        write_standings_json(
-            standings,
+    if args.archive:
+        write_archive(args, cache)
+    elif args.json:
+        standings = build_standings(args.apikey, args.year, args.range, args.max, cache)
+        write_json(
+            standings_json(
+                standings, args.apikey, args.year, args.range, args.max, args.top
+            ),
             args.json,
-            args.apikey,
-            args.year,
-            args.range,
-            args.max,
-            args.top,
         )
     else:
+        standings = build_standings(args.apikey, args.year, args.range, args.max, cache)
         print_standings(standings, args.year, args.top)
 
     CACHE_FILE.write_text(json.dumps(cache), encoding='utf-8')
