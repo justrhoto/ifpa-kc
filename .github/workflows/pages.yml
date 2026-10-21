@@ -40,7 +40,7 @@ jobs:
       - name: Build standings
         env:
           IFPA_API_KEY: ${{ secrets.IFPA_API_KEY }}
-        run: python kc_tournaments.py --json site/data.json --top 100
+        run: python kc_tournaments.py --json site/data.json --archive site/data --top 100
 
       - uses: actions/configure-pages@v5
 
