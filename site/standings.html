@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17112a">
+  <title>KC Pinball Standings</title>
+  <meta name="description" content="Top 100 IFPA pinball players in the Kansas City area">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Doto:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="standings.css">
+</head>
+<body>
+  <header class="dmd">
+    <h1 class="dmd-title">
+      <span>KC-area Pinball Standings</span>
+      <span class="dmd-year" id="year"></span>
+    </h1>
+    <dl class="dmd-stats">
+      <div><dt>Tournaments</dt><dd id="tournaments">&nbsp;</dd></div>
+      <div><dt>Players</dt><dd id="players">&nbsp;</dd></div>
+    </dl>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <label class="search">
+        <span class="visually-hidden">Find a player</span>
+        <input type="search" id="search" placeholder="Find a player" autocomplete="off" spellcheck="false">
+      </label>
+      <p class="count" id="count" aria-live="polite"></p>
+    </div>
+
+    <div class="list-head" aria-hidden="true">
+      <span></span><span>Player</span><span class="avg">Avg</span><span>Events</span><span>Points</span>
+    </div>
+    <ol class="rows" id="rows"></ol>
+    <p class="status" id="status" hidden></p>
+  </main>
+
+  <footer>
+    <p class="meta" id="meta"></p>
+    <p><a href="./">Kiosk view</a></p>
+  </footer>
+
+  <script src="standings.js"></script>
+</body>
+</html>
